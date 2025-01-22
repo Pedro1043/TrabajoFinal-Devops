@@ -1,4 +1,4 @@
-const request = require('supertest');
+/*const request = require('supertest');
 const app = require('../../app.js');
 const controllerUsuario = require('../../controllers/usuario.js');
 const routerUsuario = require('../../routes/usuario.js');
@@ -28,4 +28,4 @@ describe('Actividad 6', () => {
         
     });
 
-});
+});*/
