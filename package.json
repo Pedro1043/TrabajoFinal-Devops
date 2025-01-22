@@ -4,8 +4,9 @@
   "description": "Mi primer proyecto",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon app.js"
+    "test": "jest",
+    "start": "nodemon app.js",
+    "test:performance": "artillery run tests/performance.yaml -o tests/report.json"
   },
   "author": "Juan Cabello",
   "license": "ISC",
@@ -33,6 +34,7 @@
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.16",
     "nodemailer-sendgrid-transport": "^0.2.0",
-    "pdfkit": "^0.15.1"
+    "pdfkit": "^0.15.1",
+    "supertest": "^7.0.0"
   }
 }

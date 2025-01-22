@@ -78,6 +78,7 @@ exports.postLogout = async (req, res, next) => {
 exports.getSignup = async (req, res, next) => {
   let mensaje = req.flash('error');
   mensaje = mensaje.length > 0 ? mensaje[0] : null;
+  res.status(200)
   res.render("signup-usuario", {
     titulo: "Creación de nueva cuenta",
     mensajeError: mensaje,

@@ -1,9 +1,9 @@
 const port = 3000;
 const MONGODB_URI = 'mongodb+srv://santaaparicioc:typing1234@cluster0.9o6gj.mongodb.net/samsung?retryWrites=true&w=majority'
 
-
 const mongoose = require('mongoose');
 const session = require('express-session');
+const helmet = require('helmet');
 const MongoDBStore = require('connect-mongodb-session')(session);
 
 const path = require('path');
@@ -17,8 +17,6 @@ const flash = require('connect-flash');
 const csrf = require('csurf');
 const multer = require('multer');
 
-
-
 //from project
 const Categoria = require('./models/categoria');
 const usuarioRouter = require('./routes/usuario')
@@ -27,9 +25,6 @@ const adminRouter = require('./routes/admin');
 const empresaRouter = require('./routes/empresa');
 const Usuario = require('./models/usuario');
 const errorController = require('./controllers/error')
-
-
-
 
 const app = express();
 const store = new MongoDBStore({
@@ -71,6 +66,7 @@ app.get("/favicon.ico", function (req, res) {
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
+app.use(helmet());
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(multer({ storage: fileStorage, fileFilter: fileFilter }).single('imagen'));
@@ -151,4 +147,5 @@ mongoose
     console.log(err);
   });
 
+module.exports = app;
 

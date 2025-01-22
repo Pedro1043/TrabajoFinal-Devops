@@ -10,15 +10,11 @@ scenarios:
     flow:
       - get:
           url: "/productos"
-  - name: Test endpoint productos categoría
-    flow:
-      - get:
-          url: "/productos/vajilla"
   - name: Test endpoint ingreso
     flow:
       - get:
-          url: "/ingresar"
+          url: "/usuario/login"
   - name: Test endpoint registro
     flow:
       - get:
-          url: "/registrarse"
+          url: "/usuario/signup"
