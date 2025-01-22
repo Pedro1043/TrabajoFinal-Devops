@@ -8,6 +8,8 @@ const MongoDBStore = require('connect-mongodb-session')(session);
 
 const path = require('path');
 
+const cookieParser = require('cookie-parser');
+
 const express = require('express');
 
 const raizDir = require('./utils/path');
@@ -66,6 +68,7 @@ app.get("/favicon.ico", function (req, res) {
 app.set('view engine', 'ejs');
 app.set('views', 'views');
 
+app.use(cookieParser());
 app.use(helmet());
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -141,7 +144,7 @@ mongoose
   .connect(MONGODB_URI)
   .then(result => {
 
-    app.listen(port, (e) => { console.log(`...running port ${port}`) });
+    app.listen(port, (e) => { console.log(`Corriendo en http://localhost:${port}`) });
   })
   .catch(err => {
     console.log(err);

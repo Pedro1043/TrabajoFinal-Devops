@@ -4,11 +4,10 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
 const { validationResult } = require('express-validator');
+const jwt = require('jsonwebtoken');
 const path = require("path");
 
-
-
-
+const SECRET_KEY = 'actividad6';
 
 exports.getLogin = async (req, res, next) => {
   let mensaje = req.flash('error');
@@ -48,6 +47,8 @@ exports.postLogin = async (req, res, next) => {
       bcrypt.compare(password, usuario.password)
         .then(hayCoincidencia => {
           if (hayCoincidencia) {
+            const token = jwt.sign({ username: usuario.email }, SECRET_KEY, { expiresIn: '1h' });
+            res.cookie('token', token);
             req.session.autenticado = true;
             req.session.usuario = usuario;
             return req.session.save(err => {
