@@ -430,3 +430,14 @@ exports.getComprobante = (req, res, next) => {
       return next(error);
     });
 };
+
+
+exports.getApiProductosDisponibles = async (req, res) => {
+  Producto.find()
+    .then(productos => {
+      res.status(200).json(productos);  // Enviar productos en formato JSON
+    })
+    .catch(err => {
+      res.status(500).json({ mensaje: 'Error al obtener productos', error: err });
+    });
+};
