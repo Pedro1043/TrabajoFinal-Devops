@@ -1,0 +1,178 @@
+{
+  "aggregate": {
+    "counters": {
+      "vusers.created_by_name.Test endpoint registro": 557,
+      "vusers.created": 1600,
+      "http.requests": 1600,
+      "plugins.metrics-by-endpoint./usuario/signup.errors.ECONNREFUSED": 557,
+      "errors.ECONNREFUSED": 1600,
+      "vusers.failed": 1600,
+      "vusers.created_by_name.Test endpoint ingreso": 547,
+      "plugins.metrics-by-endpoint./usuario/login.errors.ECONNREFUSED": 547,
+      "vusers.created_by_name.Test endpoint todos los productos": 496,
+      "plugins.metrics-by-endpoint./productos.errors.ECONNREFUSED": 496
+    },
+    "rates": {
+      "http.request_rate": 35
+    },
+    "firstCounterAt": 1737563916910,
+    "lastCounterAt": 1737563967253,
+    "firstMetricAt": 1737563916910,
+    "lastMetricAt": 1737563967253,
+    "period": 1737563960000,
+    "summaries": {},
+    "histograms": {}
+  },
+  "intermediate": [
+    {
+      "counters": {
+        "vusers.created_by_name.Test endpoint registro": 18,
+        "vusers.created": 57,
+        "http.requests": 57,
+        "plugins.metrics-by-endpoint./usuario/signup.errors.ECONNREFUSED": 18,
+        "errors.ECONNREFUSED": 57,
+        "vusers.failed": 57,
+        "vusers.created_by_name.Test endpoint ingreso": 20,
+        "plugins.metrics-by-endpoint./usuario/login.errors.ECONNREFUSED": 20,
+        "vusers.created_by_name.Test endpoint todos los productos": 19,
+        "plugins.metrics-by-endpoint./productos.errors.ECONNREFUSED": 19
+      },
+      "rates": {
+        "http.request_rate": 30
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1737563916910,
+      "lastCounterAt": 1737563919973,
+      "firstMetricAt": 1737563916910,
+      "lastMetricAt": 1737563919973,
+      "period": "1737563910000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Test endpoint registro": 72,
+        "vusers.created": 200,
+        "http.requests": 200,
+        "plugins.metrics-by-endpoint./usuario/signup.errors.ECONNREFUSED": 72,
+        "errors.ECONNREFUSED": 200,
+        "vusers.failed": 200,
+        "vusers.created_by_name.Test endpoint todos los productos": 70,
+        "plugins.metrics-by-endpoint./productos.errors.ECONNREFUSED": 70,
+        "vusers.created_by_name.Test endpoint ingreso": 58,
+        "plugins.metrics-by-endpoint./usuario/login.errors.ECONNREFUSED": 58
+      },
+      "rates": {
+        "http.request_rate": 20
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1737563920003,
+      "lastCounterAt": 1737563929971,
+      "firstMetricAt": 1737563920003,
+      "lastMetricAt": 1737563929971,
+      "period": "1737563920000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Test endpoint registro": 64,
+        "vusers.created": 200,
+        "http.requests": 200,
+        "plugins.metrics-by-endpoint./usuario/signup.errors.ECONNREFUSED": 64,
+        "errors.ECONNREFUSED": 200,
+        "vusers.failed": 200,
+        "vusers.created_by_name.Test endpoint ingreso": 78,
+        "plugins.metrics-by-endpoint./usuario/login.errors.ECONNREFUSED": 78,
+        "vusers.created_by_name.Test endpoint todos los productos": 58,
+        "plugins.metrics-by-endpoint./productos.errors.ECONNREFUSED": 58
+      },
+      "rates": {
+        "http.request_rate": 20
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1737563930003,
+      "lastCounterAt": 1737563939976,
+      "firstMetricAt": 1737563930003,
+      "lastMetricAt": 1737563939976,
+      "period": "1737563930000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Test endpoint ingreso": 103,
+        "vusers.created": 295,
+        "http.requests": 295,
+        "plugins.metrics-by-endpoint./usuario/login.errors.ECONNREFUSED": 103,
+        "errors.ECONNREFUSED": 295,
+        "vusers.failed": 295,
+        "vusers.created_by_name.Test endpoint registro": 110,
+        "plugins.metrics-by-endpoint./usuario/signup.errors.ECONNREFUSED": 110,
+        "vusers.created_by_name.Test endpoint todos los productos": 82,
+        "plugins.metrics-by-endpoint./productos.errors.ECONNREFUSED": 82
+      },
+      "rates": {
+        "http.request_rate": 35
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1737563940007,
+      "lastCounterAt": 1737563949977,
+      "firstMetricAt": 1737563940007,
+      "lastMetricAt": 1737563949977,
+      "period": "1737563940000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Test endpoint registro": 180,
+        "vusers.created": 500,
+        "http.requests": 500,
+        "plugins.metrics-by-endpoint./usuario/signup.errors.ECONNREFUSED": 180,
+        "errors.ECONNREFUSED": 500,
+        "vusers.failed": 500,
+        "vusers.created_by_name.Test endpoint ingreso": 163,
+        "plugins.metrics-by-endpoint./usuario/login.errors.ECONNREFUSED": 163,
+        "vusers.created_by_name.Test endpoint todos los productos": 157,
+        "plugins.metrics-by-endpoint./productos.errors.ECONNREFUSED": 157
+      },
+      "rates": {
+        "http.request_rate": 50
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1737563950011,
+      "lastCounterAt": 1737563959978,
+      "firstMetricAt": 1737563950011,
+      "lastMetricAt": 1737563959978,
+      "period": "1737563950000",
+      "summaries": {},
+      "histograms": {}
+    },
+    {
+      "counters": {
+        "vusers.created_by_name.Test endpoint registro": 113,
+        "vusers.created": 348,
+        "http.requests": 348,
+        "plugins.metrics-by-endpoint./usuario/signup.errors.ECONNREFUSED": 113,
+        "errors.ECONNREFUSED": 348,
+        "vusers.failed": 348,
+        "vusers.created_by_name.Test endpoint todos los productos": 110,
+        "plugins.metrics-by-endpoint./productos.errors.ECONNREFUSED": 110,
+        "vusers.created_by_name.Test endpoint ingreso": 125,
+        "plugins.metrics-by-endpoint./usuario/login.errors.ECONNREFUSED": 125
+      },
+      "rates": {
+        "http.request_rate": 50
+      },
+      "http.request_rate": null,
+      "firstCounterAt": 1737563960011,
+      "lastCounterAt": 1737563967253,
+      "firstMetricAt": 1737563960011,
+      "lastMetricAt": 1737563967253,
+      "period": "1737563960000",
+      "summaries": {},
+      "histograms": {}
+    }
+  ]
+}

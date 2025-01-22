@@ -6,7 +6,7 @@
   "scripts": {
     "test": "jest",
     "start": "nodemon app.js",
-    "test:performance": "artillery run tests/performance.yaml -o tests/report.json"
+    "test:performance": "artillery run tests/performance/performance.yaml -o tests/report.json"
   },
   "author": "Juan Cabello",
   "license": "ISC",
