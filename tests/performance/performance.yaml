@@ -1,0 +1,24 @@
+config:
+  target: "http://localhost:3000"
+phases:
+  - duration: 30 # Duración de la prueba en segundos
+    arrivalRate: 20 # Número de solicitudes por segundo
+  - duration: 20
+    arrivalRate: 50 # Incremento de la carga
+scenarios:
+  - name: Test endpoint todos los productos
+    flow:
+      - get:
+          url: "/productos"
+  - name: Test endpoint productos categoría
+    flow:
+      - get:
+          url: "/productos/vajilla"
+  - name: Test endpoint ingreso
+    flow:
+      - get:
+          url: "/ingresar"
+  - name: Test endpoint registro
+    flow:
+      - get:
+          url: "/registrarse"
