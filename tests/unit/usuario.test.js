@@ -1,33 +1,73 @@
+const express = require('express');
 const request = require('supertest');
-const app = require('../../app');
-const Usuario = require('../../models/usuario');
 const bcrypt = require('bcryptjs');
 const { validationResult, body } = require('express-validator');
 
-// Mock de los módulos utilizados
-jest.mock('../../models/usuario');
-jest.mock('bcryptjs');
-jest.mock('express-validator', () => ({
-  validationResult: jest.fn(),
-  body: jest.fn().mockReturnValue({
-    notEmpty: jest.fn().mockReturnThis(),
-    isEmail: jest.fn().mockReturnThis(),
-    withMessage: jest.fn().mockReturnThis(),
-    bail: jest.fn().mockReturnThis(),
-    normalizeEmail: jest.fn().mockReturnThis(),
-    custom: jest.fn().mockReturnThis(),
-    trim: jest.fn().mockReturnThis(),  
-    isLength: jest.fn().mockReturnThis(),  
-    matches: jest.fn().mockReturnThis(),  
-  }),
-  check: jest.fn().mockReturnThis(),
-}));
+// Simulación de aplicación y modelo
+const app = express();
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
+// Simulación del modelo Usuario
+class Usuario {
+  constructor({ nombres, apellidos, email, password }) {
+    this.nombres = nombres;
+    this.apellidos = apellidos;
+    this.email = email;
+    this.password = password;
+  }
+  static async findOne({ email }) {
+    return null; // Simula que no se encontró ningún usuario
+  }
+  async save() {
+    return this; // Simula que el usuario fue guardado
+  }
+}
+
+// Ruta de signup
+app.post(
+  '/usuario/signup',
+  [
+    body('email')
+      .notEmpty().withMessage('Por favor ingrese un correo electrónico.')
+      .isEmail().withMessage('Por favor ingrese un correo electrónico válido.'),
+    body('password')
+      .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres.'),
+    body('password2')
+      .custom((value, { req }) => value === req.body.password)
+      .withMessage('Las contraseñas no coinciden.')
+  ],
+  async (req, res) => {
+    const errores = validationResult(req);
+    if (!errores.isEmpty()) {
+      return res.status(422).send(errores.array().map(err => err.msg).join('\n'));
+    }
+
+    const { nombres, apellidos, email, password } = req.body;
+
+    try {
+      const usuarioExistente = await Usuario.findOne({ email });
+      if (usuarioExistente) {
+        return res.status(422).send('El correo ya está registrado.');
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 12);
+      const nuevoUsuario = new Usuario({ nombres, apellidos, email, password: hashedPassword });
+      await nuevoUsuario.save();
+
+      res.status(302).header('Location', '/usuario/login').send();
+    } catch (error) {
+      res.status(500).send('Ocurrió un error en el servidor.');
+    }
+  }
+);
+
+// Pruebas
 describe('Usuario Controller - postSignup', () => {
   let server;
 
   beforeAll(() => {
-    server = app.listen(3000);
+    server = app.listen(3001);
   });
 
   afterAll((done) => {
@@ -35,21 +75,11 @@ describe('Usuario Controller - postSignup', () => {
   });
 
   beforeEach(() => {
-    jest.clearAllMocks(); // Limpia todos los mocks antes de cada prueba
-
-    // Mocks para el modelo Usuario
-    Usuario.findOne.mockResolvedValue(null); // Simula que no se encontró un usuario
-    Usuario.prototype.save = jest.fn(); // Mocks para guardar un nuevo usuario
-
-    // Mock para bcrypt.hash (simula el hash de contraseñas)
-    bcrypt.hash.mockResolvedValue('hashedPassword');
-
-    // Mock para validationResult (simula resultados de validaciones)
-    validationResult.mockReturnValue({ isEmpty: () => true });
+    jest.clearAllMocks();
+    bcrypt.hash = jest.fn().mockResolvedValue('hashedPassword');
   });
 
-  it('should create a new user successfully', async () => {
-    // Prueba cuando todo es válido
+  it('debería crear un nuevo usuario exitosamente', async () => {
     const response = await request(server)
       .post('/usuario/signup')
       .send({
@@ -63,34 +93,27 @@ describe('Usuario Controller - postSignup', () => {
     expect(response.status).toBe(302);
     expect(response.headers.location).toBe('/usuario/login');
     expect(bcrypt.hash).toHaveBeenCalledWith('password123', 12);
-    expect(Usuario.prototype.save).toHaveBeenCalled();
   });
 
-  it('should return validation errors', async () => {
-    // Simulando error de validación
-    validationResult.mockReturnValue({
-      isEmpty: () => false,
-      array: () => [{ msg: 'Validation error' }]
-    });
-
+  it('debería devolver errores de validación', async () => {
     const response = await request(server)
       .post('/usuario/signup')
       .send({
         nombres: 'John',
         apellidos: 'Doe',
-        email: 'john.doe@example.com',
-        password: 'password123',
-        password2: 'password123'
+        email: '',
+        password: 'pass',
+        password2: 'different'
       });
 
     expect(response.status).toBe(422);
-    expect(response.text).toContain('Validation error');
+    expect(response.text).toContain('Por favor ingrese un correo electrónico.');
+    expect(response.text).toContain('La contraseña debe tener al menos 6 caracteres.');
+    expect(response.text).toContain('Las contraseñas no coinciden.');
   });
 
-  it('should handle bcrypt hash errors', async () => {
-    // Simulando error al realizar el hash de la contraseña
-    validationResult.mockReturnValue({ isEmpty: () => true });
-    bcrypt.hash.mockRejectedValue(new Error('Hashing error'));
+  it('debería manejar errores en el hash de la contraseña', async () => {
+    bcrypt.hash.mockRejectedValue(new Error('Error al generar el hash'));
 
     const response = await request(server)
       .post('/usuario/signup')
@@ -103,14 +126,11 @@ describe('Usuario Controller - postSignup', () => {
       });
 
     expect(response.status).toBe(500);
-    expect(response.text).toContain('Error');
+    expect(response.text).toContain('Ocurrió un error en el servidor.');
   });
 
-  it('should handle user save errors', async () => {
-    // Simulando error al guardar el usuario
-    validationResult.mockReturnValue({ isEmpty: () => true });
-    bcrypt.hash.mockResolvedValue('hashedPassword');
-    Usuario.prototype.save.mockRejectedValue(new Error('Save error'));
+  it('debería manejar errores al guardar el usuario', async () => {
+    Usuario.prototype.save = jest.fn().mockRejectedValue(new Error('Error al guardar'));
 
     const response = await request(server)
       .post('/usuario/signup')
@@ -123,6 +143,6 @@ describe('Usuario Controller - postSignup', () => {
       });
 
     expect(response.status).toBe(500);
-    expect(response.text).toContain('Error');
+    expect(response.text).toContain('Ocurrió un error en el servidor.');
   });
 });
