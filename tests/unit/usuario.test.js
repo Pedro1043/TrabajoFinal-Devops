@@ -28,6 +28,8 @@ class Usuario {
 app.post(
   '/usuario/signup',
   [
+    body('nombres').notEmpty().withMessage('Por favor ingrese un nombre.'),
+    body('apellidos').notEmpty().withMessage('Por favor ingrese un apellido.'),
     body('email')
       .notEmpty().withMessage('Por favor ingrese un correo electrónico.')
       .isEmail().withMessage('Por favor ingrese un correo electrónico válido.'),
@@ -35,7 +37,7 @@ app.post(
       .isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres.'),
     body('password2')
       .custom((value, { req }) => value === req.body.password)
-      .withMessage('Las contraseñas no coinciden.')
+      .withMessage('Las contraseñas no coinciden.'),
   ],
   async (req, res) => {
     const errores = validationResult(req);
@@ -51,9 +53,19 @@ app.post(
         return res.status(422).send('El correo ya está registrado.');
       }
 
-      const hashedPassword = await bcrypt.hash(password, 12);
+      let hashedPassword;
+      try {
+        hashedPassword = await bcrypt.hash(password, 12);
+      } catch (error) {
+        return res.status(500).send('Error al generar el hash de la contraseña.');
+      }
+
       const nuevoUsuario = new Usuario({ nombres, apellidos, email, password: hashedPassword });
-      await nuevoUsuario.save();
+      try {
+        await nuevoUsuario.save();
+      } catch (error) {
+        return res.status(500).send('Error al guardar el usuario.');
+      }
 
       res.status(302).header('Location', '/usuario/login').send();
     } catch (error) {
@@ -77,6 +89,7 @@ describe('Usuario Controller - postSignup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     bcrypt.hash = jest.fn().mockResolvedValue('hashedPassword');
+    Usuario.findOne = jest.fn().mockResolvedValue(null); // Resetea el mock
   });
 
   it('debería crear un nuevo usuario exitosamente', async () => {
@@ -93,21 +106,24 @@ describe('Usuario Controller - postSignup', () => {
     expect(response.status).toBe(302);
     expect(response.headers.location).toBe('/usuario/login');
     expect(bcrypt.hash).toHaveBeenCalledWith('password123', 12);
+    expect(Usuario.findOne).toHaveBeenCalledWith({ email: 'john.doe@example.com' });
   });
 
   it('debería devolver errores de validación', async () => {
     const response = await request(server)
       .post('/usuario/signup')
       .send({
-        nombres: 'John',
-        apellidos: 'Doe',
-        email: '',
+        nombres: '',
+        apellidos: '',
+        email: 'invalid-email',
         password: 'pass',
         password2: 'different'
       });
 
     expect(response.status).toBe(422);
-    expect(response.text).toContain('Por favor ingrese un correo electrónico.');
+    expect(response.text).toContain('Por favor ingrese un nombre.');
+    expect(response.text).toContain('Por favor ingrese un apellido.');
+    expect(response.text).toContain('Por favor ingrese un correo electrónico válido.');
     expect(response.text).toContain('La contraseña debe tener al menos 6 caracteres.');
     expect(response.text).toContain('Las contraseñas no coinciden.');
   });
@@ -126,7 +142,7 @@ describe('Usuario Controller - postSignup', () => {
       });
 
     expect(response.status).toBe(500);
-    expect(response.text).toContain('Ocurrió un error en el servidor.');
+    expect(response.text).toContain('Error al generar el hash de la contraseña.');
   });
 
   it('debería manejar errores al guardar el usuario', async () => {
@@ -143,6 +159,6 @@ describe('Usuario Controller - postSignup', () => {
       });
 
     expect(response.status).toBe(500);
-    expect(response.text).toContain('Ocurrió un error en el servidor.');
+    expect(response.text).toContain('Error al guardar el usuario.');
   });
 });
