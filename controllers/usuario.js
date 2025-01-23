@@ -6,10 +6,7 @@ const sendgridTransport = require('nodemailer-sendgrid-transport');
 const { validationResult } = require('express-validator');
 const path = require("path");
 
-
-
-
-
+// Método para obtener la vista de login
 exports.getLogin = async (req, res, next) => {
   let mensaje = req.flash('error');
   mensaje = mensaje.length > 0 ? mensaje[0] : null;
@@ -26,6 +23,7 @@ exports.getLogin = async (req, res, next) => {
   });
 };
 
+// Método para hacer el login
 exports.postLogin = async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -45,41 +43,55 @@ exports.postLogin = async (req, res, next) => {
 
   Usuario.findOne({ email: email })
     .then(usuario => {
+      if (!usuario) {
+        req.flash('error', 'El usuario no existe');
+        return res.redirect('/usuario/login');
+      }
+
       bcrypt.compare(password, usuario.password)
         .then(hayCoincidencia => {
-          if (hayCoincidencia) {
-            req.session.autenticado = true;
-            req.session.usuario = usuario;
-            return req.session.save(err => {
-              console.log(err);
-              if (req.session.usuario.isadmin == 1) {
-                res.redirect('/admin/admin-dashboard');
-              } else {
-                res.redirect('/');
-              }
-            })
+          if (!hayCoincidencia) {
+            req.flash('error', 'Las credenciales son incorrectas');
+            return res.redirect('/usuario/login');
           }
+
+          req.session.autenticado = true;
+          req.session.usuario = usuario;
+          return req.session.save(err => {
+            if (err) {
+              console.log(err);
+            }
+            if (req.session.usuario.isadmin == 1) {
+              res.redirect('/admin/admin-dashboard');
+            } else {
+              res.redirect('/');
+            }
+          });
         })
         .catch(err => {
           const error = new Error(err);
           error.httpStatusCode = 500;
           return next(error);
         });
-    })
+    });
 };
 
+// Método para hacer logout
 exports.postLogout = async (req, res, next) => {
   req.session.destroy(err => {
-    console.log(err);
+    if (err) {
+      console.log(err);
+    }
     res.redirect('/');
   });
 };
 
+// Método para obtener la vista de signup
 exports.getSignup = async (req, res, next) => {
   let mensaje = req.flash('error');
   mensaje = mensaje.length > 0 ? mensaje[0] : null;
-  res.status(200)
-  res.render("signup-usuario", {
+
+  res.status(200).render("signup-usuario", {
     titulo: "Creación de nueva cuenta",
     mensajeError: mensaje,
     erroresValidacion: [],
@@ -88,18 +100,18 @@ exports.getSignup = async (req, res, next) => {
       apellidos: '',
       email: '',
       password: '',
-      password2: '',
+      password2: ''
     },
     path: "/usuario",
   });
 };
 
+// Método para registrar un nuevo usuario
 exports.postSignup = async (req, res, next) => {
   const { nombres, apellidos, email, password, password2 } = req.body;
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    console.log(errors.array());
     return res.status(422).render('signup-usuario', {
       path: '/usuario',
       titulo: 'Creación de nueva cuenta',
@@ -109,7 +121,7 @@ exports.postSignup = async (req, res, next) => {
         apellidos: apellidos,
         email: email,
         password: password,
-        password2: password2,
+        password2: password2
       },
       erroresValidacion: errors.array()
     });
@@ -129,12 +141,6 @@ exports.postSignup = async (req, res, next) => {
     })
     .then(result => {
       res.redirect('/usuario/login');
-      // return transporter.sendMail({
-      //   to: email,
-      //   from: 'proyectosamsungpucp@gmail.com',
-      //   subject: 'Registro exitoso',
-      //   html: '<h1>Ha sido registrado exitosamente en proyecto Samsung</h1>'
-      // })
     })
     .catch(err => {
       const error = new Error(err);
@@ -143,6 +149,7 @@ exports.postSignup = async (req, res, next) => {
     });
 };
 
+// Método para obtener la vista de reset password
 exports.getResetPassword = async (req, res, next) => {
   let mensaje = req.flash('error');
   mensaje = mensaje.length > 0 ? mensaje[0] : null;
@@ -154,17 +161,17 @@ exports.getResetPassword = async (req, res, next) => {
   });
 };
 
+// Método para enviar email de reinicio de contraseña
 exports.postResetPassword = async (req, res, next) => {
   crypto.randomBytes(32, (err, buffer) => {
     if (err) {
-      console.log(err);
       return res.redirect('/reset-password');
     }
     const token = buffer.toString('hex');
     Usuario.findOne({ email: req.body.email })
       .then(usuario => {
         if (!usuario) {
-          req.flash('error', 'No se encontro usuario con dicho email');
+          req.flash('error', 'No se encontró usuario con dicho email');
           return res.redirect('/reset-password');
         }
         usuario.tokenReinicio = token;
@@ -191,6 +198,7 @@ exports.postResetPassword = async (req, res, next) => {
   });
 };
 
+// Método para obtener la vista de nueva contraseña
 exports.getNewPassword = (req, res, next) => {
   const token = req.params.token;
   Usuario.findOne({ tokenReinicio: token, expiracionTokenReinicio: { $gt: Date.now() } })
@@ -213,6 +221,7 @@ exports.getNewPassword = (req, res, next) => {
     });
 };
 
+// Método para actualizar la contraseña
 exports.postNewPassword = (req, res, next) => {
   const nuevoPassword = req.body.password;
   const idUsuario = req.body.idUsuario;
