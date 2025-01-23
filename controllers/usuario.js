@@ -4,9 +4,11 @@ const crypto = require('crypto');
 const nodemailer = require('nodemailer');
 const sendgridTransport = require('nodemailer-sendgrid-transport');
 const { validationResult } = require('express-validator');
+const jwt = require('jsonwebtoken');
 const path = require("path");
 
-// Método para obtener la vista de login
+const SECRET_KEY = 'actividad6';
+
 exports.getLogin = async (req, res, next) => {
   let mensaje = req.flash('error');
   mensaje = mensaje.length > 0 ? mensaje[0] : null;
@@ -50,9 +52,19 @@ exports.postLogin = async (req, res, next) => {
 
       bcrypt.compare(password, usuario.password)
         .then(hayCoincidencia => {
-          if (!hayCoincidencia) {
-            req.flash('error', 'Las credenciales son incorrectas');
-            return res.redirect('/usuario/login');
+          if (hayCoincidencia) {
+            const token = jwt.sign({ username: usuario.email }, SECRET_KEY, { expiresIn: '1h' });
+            res.cookie('token', token);
+            req.session.autenticado = true;
+            req.session.usuario = usuario;
+            return req.session.save(err => {
+              console.log(err);
+              if (req.session.usuario.isadmin == 1) {
+                res.redirect('/admin/admin-dashboard');
+              } else {
+                res.redirect('/');
+              }
+            })
           }
 
           req.session.autenticado = true;
