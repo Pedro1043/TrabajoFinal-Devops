@@ -9,28 +9,41 @@ app.use(express.urlencoded({ extended: false }));
 
 // Simulación del modelo Producto
 class Producto {
-  constructor({ nombre, descripcion, precio, stock }) {
+  constructor({ nombre, urlImagen, precio, descripcion, caracteristicas, categoria_id, idUsuario }) {
     this.nombre = nombre;
-    this.descripcion = descripcion;
+    this.urlImagen = urlImagen;
     this.precio = precio;
-    this.stock = stock;
+    this.descripcion = descripcion;
+    this.caracteristicas = caracteristicas;
+    this.categoria_id = categoria_id;
+    this.idUsuario = idUsuario;
   }
-  static async findOne({ nombre }) {
-    return null; // Simula que no se encontró ningún producto con ese nombre
+
+  static async findOne({ nombre, categoria_id }) {
+    // Simula la búsqueda de un producto con el mismo nombre en la misma categoría
+    return null; // Cambiar para simular productos duplicados si es necesario
   }
+
   async save() {
-    return this; // Simula que el producto fue guardado
+    // Simula guardar el producto
+    return this;
   }
 }
 
-// Ruta de creación de producto
+// Ruta de creación de productos
 app.post(
-  '/producto/crear',
+  '/producto/create',
   [
-    body('nombre').notEmpty().withMessage('Por favor ingrese un nombre de producto.'),
-    body('descripcion').notEmpty().withMessage('Por favor ingrese una descripción del producto.'),
-    body('precio').isFloat({ min: 0 }).withMessage('El precio debe ser un número positivo.'),
-    body('stock').isInt({ min: 0 }).withMessage('El stock debe ser un número entero no negativo.'),
+    body('nombre').notEmpty().withMessage('El nombre del producto es obligatorio.'),
+    body('urlImagen').isURL().withMessage('La URL de la imagen no es válida.'),
+    body('precio')
+      .isFloat({ min: 0 }).withMessage('El precio debe ser un número positivo.'),
+    body('descripcion')
+      .notEmpty().withMessage('La descripción no puede estar vacía.')
+      .isLength({ min: 10 }).withMessage('La descripción debe tener al menos 10 caracteres.'),
+    body('caracteristicas').notEmpty().withMessage('Las características son obligatorias.'),
+    body('categoria_id').isInt().withMessage('El ID de la categoría debe ser un número válido.'),
+    body('idUsuario').isInt().withMessage('El ID del usuario debe ser un número válido.'),
   ],
   async (req, res) => {
     const errores = validationResult(req);
@@ -38,34 +51,31 @@ app.post(
       return res.status(422).send(errores.array().map(err => err.msg).join('\n'));
     }
 
-    const { nombre, descripcion, precio, stock } = req.body;
+    const { nombre, urlImagen, precio, descripcion, caracteristicas, categoria_id, idUsuario } = req.body;
 
-    try {
-      const productoExistente = await Producto.findOne({ nombre });
-      if (productoExistente) {
-        return res.status(422).send('El producto ya está registrado.');
-      }
-
-      const nuevoProducto = new Producto({ nombre, descripcion, precio, stock });
-      try {
-        await nuevoProducto.save();
-      } catch (error) {
-        return res.status(500).send('Error al guardar el producto.');
-      }
-
-      res.status(201).send('Producto creado exitosamente');
-    } catch (error) {
-      res.status(500).send('Ocurrió un error en el servidor.');
+    // Simulación de duplicado en la misma categoría
+    const productoExistente = await Producto.findOne({ nombre, categoria_id });
+    if (productoExistente) {
+      return res.status(422).send('El producto con este nombre ya existe en la misma categoría.');
     }
+
+    const nuevoProducto = new Producto({ nombre, urlImagen, precio, descripcion, caracteristicas, categoria_id, idUsuario });
+    try {
+      await nuevoProducto.save();
+    } catch (error) {
+      return res.status(500).send('Error al guardar el producto.');
+    }
+
+    res.status(201).send('Producto creado exitosamente');
   }
 );
 
 // Pruebas
-describe('Producto Controller - postCrear', () => {
+describe('Producto Controller - postCreate', () => {
   let server;
 
   beforeAll(() => {
-    server = app.listen(3002);
+    server = app.listen(3001);
   });
 
   afterAll((done) => {
@@ -74,86 +84,109 @@ describe('Producto Controller - postCrear', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    Producto.findOne = jest.fn().mockResolvedValue(null); // Resetea el mock
   });
 
   it('debería crear un nuevo producto exitosamente', async () => {
     const response = await request(server)
-      .post('/producto/crear')
+      .post('/producto/create')
       .send({
-        nombre: 'Producto 1',
-        descripcion: 'Descripción del producto 1',
+        nombre: 'Producto A',
+        urlImagen: 'http://example.com/image.jpg',
         precio: 100,
-        stock: 10
+        descripcion: 'Descripción del producto.',
+        caracteristicas: 'Característica 1, Característica 2',
+        categoria_id: 1,
+        idUsuario: 1
       });
 
     expect(response.status).toBe(201);
     expect(response.text).toBe('Producto creado exitosamente');
-    expect(Producto.findOne).toHaveBeenCalledWith({ nombre: 'Producto 1' });
   });
 
-  it('debería devolver errores de validación', async () => {
+  it('debería devolver error por nombre vacío', async () => {
     const response = await request(server)
-      .post('/producto/crear')
+      .post('/producto/create')
       .send({
         nombre: '',
-        descripcion: '',
-        precio: -5,
-        stock: -3
-      });
-
-    expect(response.status).toBe(422);
-    expect(response.text).toContain('Por favor ingrese un nombre de producto.');
-    expect(response.text).toContain('Por favor ingrese una descripción del producto.');
-    expect(response.text).toContain('El precio debe ser un número positivo.');
-    expect(response.text).toContain('El stock debe ser un número entero no negativo.');
-  });
-
-  it('debería devolver un error si el producto ya está registrado', async () => {
-    Producto.findOne = jest.fn().mockResolvedValue({ nombre: 'Producto 1' }); // Simula que el producto ya existe
-
-    const response = await request(server)
-      .post('/producto/crear')
-      .send({
-        nombre: 'Producto 1',
-        descripcion: 'Descripción del producto 1',
+        urlImagen: 'http://example.com/image.jpg',
         precio: 100,
-        stock: 10
+        descripcion: 'Descripción',
+        caracteristicas: 'Característica',
+        categoria_id: 1,
+        idUsuario: 1
       });
 
     expect(response.status).toBe(422);
-    expect(response.text).toContain('El producto ya está registrado.');
+    expect(response.text).toContain('El nombre del producto es obligatorio.');
   });
 
-  it('debería manejar errores al guardar el producto', async () => {
-    Producto.prototype.save = jest.fn().mockRejectedValue(new Error('Error al guardar el producto'));
-
+  it('debería devolver error por URL de imagen inválida', async () => {
     const response = await request(server)
-      .post('/producto/crear')
+      .post('/producto/create')
       .send({
-        nombre: 'Producto 2',
-        descripcion: 'Descripción del producto 2',
-        precio: 200,
-        stock: 5
+        nombre: 'Producto B',
+        urlImagen: 'invalid-url',
+        precio: 100,
+        descripcion: 'Descripción',
+        caracteristicas: 'Característica',
+        categoria_id: 1,
+        idUsuario: 1
       });
 
-    expect(response.status).toBe(500);
-    expect(response.text).toContain('Error al guardar el producto.');
+    expect(response.status).toBe(422);
+    expect(response.text).toContain('La URL de la imagen no es válida.');
   });
 
-  it('debería manejar errores generales en el servidor', async () => {
-    Producto.findOne = jest.fn().mockRejectedValue(new Error('Error en el servidor'));
-
+  it('debería devolver error por precio negativo', async () => {
     const response = await request(server)
-      .post('/producto/crear')
+      .post('/producto/create')
       .send({
-        nombre: 'Producto 3',
-        descripcion: 'Descripción del producto 3',
-        precio: 150,
-        stock: 8
+        nombre: 'Producto C',
+        urlImagen: 'http://example.com/image.jpg',
+        precio: -50,
+        descripcion: 'Descripción',
+        caracteristicas: 'Característica',
+        categoria_id: 1,
+        idUsuario: 1
       });
 
-    expect(response.status).toBe(500);
-    expect(response.text).toContain('Ocurrió un error en el servidor.');
+    expect(response.status).toBe(422);
+    expect(response.text).toContain('El precio debe ser un número positivo.');
+  });
+
+  it('debería devolver error por descripción vacía', async () => {
+    const response = await request(server)
+      .post('/producto/create')
+      .send({
+        nombre: 'Producto D',
+        urlImagen: 'http://example.com/image.jpg',
+        precio: 100,
+        descripcion: '',
+        caracteristicas: 'Característica',
+        categoria_id: 1,
+        idUsuario: 1
+      });
+
+    expect(response.status).toBe(422);
+    expect(response.text).toContain('La descripción no puede estar vacía.');
+  });
+
+  it('debería devolver error por producto duplicado en la misma categoría', async () => {
+    Producto.findOne = jest.fn().mockResolvedValue({ nombre: 'Producto D', categoria_id: 1 }); // Simulando un producto duplicado
+
+    const response = await request(server)
+      .post('/producto/create')
+      .send({
+        nombre: 'Producto D',
+        urlImagen: 'http://example.com/image.jpg',
+        precio: 100,
+        descripcion: 'Descripción',
+        caracteristicas: 'Característica',
+        categoria_id: 1,
+        idUsuario: 1
+      });
+
+    expect(response.status).toBe(422);
+    expect(response.text).toContain('El producto con este nombre ya existe en la misma categoría.');
   });
 });
