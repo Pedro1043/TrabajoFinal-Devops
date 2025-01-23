@@ -162,3 +162,98 @@ describe('Usuario Controller - postSignup', () => {
     expect(response.text).toContain('Error al guardar el usuario.');
   });
 });
+
+//usuario/Login
+
+
+app.post('/usuario/login', async (req, res) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(422).send('Por favor ingrese un correo electrónico y una contraseña.');
+  }
+
+  try {
+    const usuario = await Usuario.findOne({ email });
+
+    if (!usuario || !await bcrypt.compare(password, usuario.password)) {
+      return res.status(401).send('Correo electrónico o contraseña incorrectos.');
+    }
+
+    res.status(200).send('Login exitoso!');
+  } catch (error) {
+    res.status(500).send('Ocurrió un error en el servidor.');
+  }
+});
+
+module.exports = app;
+
+// Pruebas
+describe('Usuario Controller - postLogin', () => {
+  let server;
+
+  beforeAll(() => {
+    server = app.listen(3001);
+  });
+
+  afterAll((done) => {
+    if (server) {
+      server.close(done);
+    } else {
+      done();
+    }
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('debería loguearse exitosamente con credenciales correctas', async () => {
+    
+    Usuario.findOne = jest.fn().mockResolvedValue({
+      email: 'john.doe@example.com',
+      password: 'hashedPassword123'
+    });
+
+    bcrypt.compare = jest.fn().mockResolvedValue(true);
+
+    const response = await request(server)
+      .post('/usuario/login')
+      .send({
+        email: 'john.doe@example.com',
+        password: 'password123'
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.text).toBe('Login exitoso!');
+  });
+
+  it('debería devolver errores de validación si los datos no son válidos', async () => {
+    const response = await request(server)
+      .post('/usuario/login')
+      .send({
+        email: '',
+        password: ''
+      });
+
+    expect(response.status).toBe(422);
+    expect(response.text).toBe('Por favor ingrese un correo electrónico y una contraseña.');
+  });
+
+  it('debería manejar errores de servidor', async () => {
+    Usuario.findOne = jest.fn().mockRejectedValue(new Error('Error de base de datos'));
+
+    const response = await request(server)
+      .post('/usuario/login')
+      .send({
+        email: 'john.doe@example.com',
+        password: 'password123'
+      });
+
+    expect(response.status).toBe(500);
+    
+    expect(response.text).toContain('Ocurrió un error en el servidor.');
+  });
+});
+
+
