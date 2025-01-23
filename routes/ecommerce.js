@@ -24,4 +24,9 @@ router.get('/pedidos', isAuth, productosController.getPedidos);
 router.post('/crear-pedido', isAuth, productosController.postPedido);
 router.get('/pedidos/:idPedido', isAuth, productosController.getComprobante);
 
+// APIS 
+
+// Ruta para obtener todos los productos
+router.get('/api/productos', productosController.getApiProductosDisponibles);
+
 module.exports = router;
